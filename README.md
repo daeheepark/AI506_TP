@@ -1,3 +1,3 @@
 # AI506_TP
 
-main.ipynb에 HyperGraph로 전처리 해놨어요.
+hypergraph.py에 HG 정의해놓았습니다.
