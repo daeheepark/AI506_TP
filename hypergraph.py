@@ -1,5 +1,4 @@
 import numpy as np
-import sys
 import matplotlib.pyplot as plt
 from collections import defaultdict
 from distutils.util import strtobool
@@ -100,22 +99,3 @@ def show_data_dist(HG):
     ax.grid(which='x', alpha=0.5)
 
     plt.show()
-
-if __name__ == "__main__":
-    filePath = './project_data/paper_author.txt'
-    lines = open(filePath, 'r').readlines()
-    lineiter = iter(lines)
-
-    line1 = next(lineiter)
-    numAuth, numPub = list(map(int, line1.strip().split()))
-
-    HG = HyperGraph()
-    for _ in range(numPub):
-        linei = next(lineiter)
-        Auths = list(map(int, linei.strip().split()))
-        HG.update_line(Auths)
-
-    print(numPub)
-    print(numAuth)
-
-    sys.exit()

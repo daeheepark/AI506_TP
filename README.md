@@ -1,3 +1,5 @@
 # AI506_TP
 
-hypergraph.py에 HG 정의해놓았습니다.
+External Libraries
+
+    pip install node2vec
