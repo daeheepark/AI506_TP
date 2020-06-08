@@ -1,6 +1,7 @@
 import os
 import sys
 from itertools import combinations
+from distutils.util import strtobool
 
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -13,8 +14,8 @@ from hypergraph import HyperGraph
 
 
 if __name__ == "__main__":
-    filePath = './project_data/paper_author.txt'
-    lines = open(filePath, 'r').readlines()
+    file_path = './project_data/paper_author.txt'
+    lines = open(file_path, 'r').readlines()
     lineiter = iter(lines)
 
     line1 = next(lineiter)
@@ -57,10 +58,37 @@ if __name__ == "__main__":
         model.wv.save("node2vec.kv")    # keyed vectors for later use save memory by not loading entire model
         del model                       # save memory during computation
 
-    tsne = TSNE(n_components=2).fit_transform(node_vectors.vectors)
-    plt.figure()
-    plt.scatter(tsne[:,0], tsne[:,1])
-    plt.savefig("node2vec.png")
-    plt.close()
+    # tsne = TSNE(n_components=2).fit_transform(node_vectors.vectors)
+    # plt.figure()
+    # plt.scatter(tsne[:,0], tsne[:,1])
+    # plt.savefig("node2vec.png")
+    # plt.close()
+
+    qp_lines = open('./project_data/query_public.txt', 'r').readlines()
+    ap_lines = open('./project_data/answer_public.txt', 'r').readlines()
+    qp_iter = iter(qp_lines)
+    ap_iter = iter(ap_lines)
+
+    num_queries = int(next(qp_iter))
+    num_correct = 0
+
+    for _ in range(num_queries):
+        query = next(qp_iter)
+        query = query.strip().split()
+        ans = next(ap_iter).strip()
+        ans = strtobool(ans)
+        sim = 0.
+        sim_threshold = 0.5
+
+        for author1, author2 in combinations(query, 2):
+            if author1 in node_vectors.vocab.keys() and author2 in node_vectors.vocab.keys():   # check for fake authors
+                sim += node_vectors.similarity(author1, author2)     # compute cosine similarity between two nodes
+
+        pred = 1 if sim >= sim_threshold else 0
+
+        if pred == ans:
+            num_correct += 1
+
+    print(f'acc: {num_correct/num_queries*100:.2f}')
 
     sys.exit()
