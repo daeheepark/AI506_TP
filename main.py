@@ -6,12 +6,13 @@ from distutils.util import strtobool
 import networkx as nx
 import matplotlib.pyplot as plt
 from gensim.models import KeyedVectors
-from node2vec import Node2Vec
+from node2vec.node2vec.node2vec import Node2Vec
 from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans
 
 from hypergraph import HyperGraph
 
+LOAD_PRETRAINED = False
 
 if __name__ == "__main__":
     file_path = './project_data/paper_author.txt'
@@ -29,7 +30,7 @@ if __name__ == "__main__":
     #     HG.update_line(authors)
 
     # Load pretrained vectors, otherwise create a new graph
-    if os.path.exists("node2vec.kv"):
+    if os.path.exists("node2vec.kv") and LOAD_PRETRAINED:
         node_vectors = KeyedVectors.load("node2vec.kv", mmap='r')
     else:
         G = nx.Graph()
