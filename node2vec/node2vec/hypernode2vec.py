@@ -9,8 +9,7 @@ from tqdm import tqdm
 
 from .parallel import parallel_generate_walks
 
-
-class Node2Vec:
+class Hypernode2Vec:
     FIRST_TRAVEL_KEY = 'first_travel_key'
     PROBABILITIES_KEY = 'probabilities'
     NEIGHBORS_KEY = 'neighbors'
@@ -20,8 +19,9 @@ class Node2Vec:
     P_KEY = 'p'
     Q_KEY = 'q'
 
-    def __init__(self, graph: nx.Graph, dimensions: int = 128, walk_length: int = 80, num_walks: int = 10, p: float = 1,
-                 q: float = 1, weight_key: str = 'weight', workers: int = 1, sampling_strategy: dict = None,
+    def __init__(self, graph, dimensions: int = 128, walk_length: int = 80, num_walks: int = 10,
+                 p: float = 1, q: float = 1, p1: float = 1, p2: float = 1,
+                 weight_key: str = 'weight', workers: int = 1, sampling_strategy: dict = None,
                  quiet: bool = False, temp_folder: str = None):
         """
         Initiates the Node2Vec object, precomputes walking probabilities and generates the walks.
@@ -45,6 +45,8 @@ class Node2Vec:
         self.num_walks = num_walks
         self.p = p
         self.q = q
+        self.p1 = p1
+        self.p2 = p2
         self.weight_key = weight_key
         self.workers = workers
         self.quiet = quiet
@@ -82,6 +84,8 @@ class Node2Vec:
             if self.PROBABILITIES_KEY not in d_graph[source]:
                 d_graph[source][self.PROBABILITIES_KEY] = dict()
 
+            source_hedge_set = set(self.graph._node_attributes[source])
+
             for current_node in self.graph.neighbors(source):
 
                 # Init probabilities dict
@@ -91,20 +95,44 @@ class Node2Vec:
                 unnormalized_weights = list()
                 d_neighbors = list()
 
+                current_hedge_set = set(self.graph._node_attributes[current_node])
+                on_same_hedge = source_hedge_set & current_hedge_set
+
                 # Calculate unnormalized weights
                 for destination in self.graph.neighbors(current_node):
 
-                    p = self.sampling_strategy[current_node].get(self.P_KEY,
-                                                                 self.p) if current_node in self.sampling_strategy else self.p
-                    q = self.sampling_strategy[current_node].get(self.Q_KEY,
-                                                                 self.q) if current_node in self.sampling_strategy else self.q
+                    p1 = self.sampling_strategy[current_node].get(self.P_KEY,
+                                                                 self.p1) if current_node in self.sampling_strategy else self.p1
+                    p2 = self.sampling_strategy[current_node].get(self.Q_KEY,
+                                                                 self.p2) if current_node in self.sampling_strategy else self.p2
 
-                    if destination == source:  # Backwards probability
-                        ss_weight = self.graph[current_node][destination].get(self.weight_key, 1) * 1 / p
-                    elif destination in self.graph[source]:  # If the neighbor is connected to the source
-                        ss_weight = self.graph[current_node][destination].get(self.weight_key, 1)
+                    p = self.sampling_strategy[current_node].get(self.P_KEY,
+                                                                  self.p) if current_node in self.sampling_strategy else self.p
+                    q = self.sampling_strategy[current_node].get(self.Q_KEY,
+                                                                  self.q) if current_node in self.sampling_strategy else self.q
+
+                    if on_same_hedge:
+                        dest_hedge_set = set(self.graph._node_attributes[destination])
+
+                        dest_on_same_hedge = False
+                        for hedge in on_same_hedge:
+                            if hedge in dest_hedge_set:
+                                dest_on_same_hedge = True
+
+                        if dest_on_same_hedge:
+                            ss_weight = self.graph[current_node][destination].get(self.weight_key, 1) * 1 / p1
+                        elif destination == source:
+                            ss_weight = self.graph[current_node][destination].get(self.weight_key, 1) * 1 / p2
+                        else:
+                            ss_weight = self.graph[current_node][destination].get(self.weight_key, 1)
+
                     else:
-                        ss_weight = self.graph[current_node][destination].get(self.weight_key, 1) * 1 / q
+                        if destination == source:  # Backwards probability
+                            ss_weight = self.graph[current_node][destination].get(self.weight_key, 1) * 1 / p
+                        elif destination in self.graph[source]:  # If the neighbor is connected to the source
+                            ss_weight = self.graph[current_node][destination].get(self.weight_key, 1)
+                        else:
+                            ss_weight = self.graph[current_node][destination].get(self.weight_key, 1) * 1 / q
 
                     # Assign the unnormalized sampling strategy weight, normalize during random walk
                     unnormalized_weights.append(ss_weight)

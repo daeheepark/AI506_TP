@@ -1,11 +1,15 @@
 import numpy as np
+import networkx as nx
 import matplotlib.pyplot as plt
 from collections import defaultdict
 from distutils.util import strtobool
+from itertools import combinations
 
-class HyperGraph():
+class HyperGraph(nx.Graph):
     def __init__(self):
-        self._nodes = set()#{}
+        super().__init__()
+        # self._node = set()#{} -> substitued by super()._node
+
         # _hyperedges_attributes: a dictionary mapping a hyperedge ID 
         # to a dictionary of attributes of that hyperedges.
         # Given a hyperedge ID, _hyperedge_attributes[hyperedge_id] stores
@@ -19,13 +23,14 @@ class HyperGraph():
         # _current_hyperedge_id: an int representing hyperedge ID 
         # assigned during add_hyperedge function.
         self._current_hyperedge_id = 0
+
         
-    def has_node(self, node):
-        return node in self._nodes
-    
+    # def has_node(self, node):
+    #     return node in self._node
+
     def add_nodes(self, nodes:list):
         for node in nodes:
-            self._nodes.add(node)
+            self._node.add(node)
             
     def add_hyperedges_attributes(self, nodes:list):
         self._hyperedges_attributes[self._current_hyperedge_id] = set(nodes)
@@ -34,8 +39,9 @@ class HyperGraph():
         for node in nodes:
             self._node_attributes[node].append(self._current_hyperedge_id)
     
-    def update_line(self, nodes:list):
-        self.add_nodes(nodes)
+    def update_hyperedges(self, nodes:list):
+        # self.add_nodes(nodes)
+
         self.add_hyperedges_attributes(nodes)
         self.add_node_attributes(nodes)
         self._current_hyperedge_id += 1
