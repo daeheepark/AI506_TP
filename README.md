@@ -1,5 +1,7 @@
 # AI506_TP
 
-External Libraries
 
-    pip install node2vec
+
+To download dependencies
+
+    conda env create -f env.yml

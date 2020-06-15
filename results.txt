@@ -1,0 +1,21 @@
+node combination
+1. Average
+  - Final training loss: 0.6271
+  - Final validation loss: 0.6959
+  - Final training accuracy: 0.6468
+  - Final validation accuracy: 0.5742
+2. Hadamard
+  - Final training loss: 1.9810
+  - Final validation loss: 
+  - Final training accuracy: 0.5158
+  - Final validation accuracy: 0.5179
+3. L1
+  - Final training loss:
+  - Final validation loss: 
+  - Final training accuracy:
+  - Final validation accuracy: 
+4. L2 (Frobenius)
+  - Final training loss: 0.6522 
+  - Final validation loss: 0.7058
+  - Final training accuracy: 0.6125
+  - Final validation accuracy: 0.5574
