@@ -144,6 +144,6 @@ if __name__ == "__main__":
 
     print('Saving final result')
     pddf = pd.DataFrame(result)
-    pddf.to_csv("result_%s.csv" % time.strftime("%Y%m%d_%H:%M:%S"))
+    pddf.to_csv(os.path.join(RESULT_DIR, "result_%s.csv" % time.strftime("%Y%m%d_%H:%M:%S")))
 
     sys.exit()
