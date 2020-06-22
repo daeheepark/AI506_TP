@@ -17,7 +17,6 @@ from tqdm import tqdm, trange
 
 from node2vec.node2vec.hypernode2vec import Hypernode2Vec
 from hypergraph import HyperGraph
-from utils import load_data, embed_nodes, plot_values
 from dataset import QueryDataset
 from model import SimpleNN
 
@@ -76,7 +75,10 @@ if __name__ == "__main__":
 
     # hypernode2vec creation
     HG = HyperGraph()
-    num_pubs = int(next(graph_iter))
+    line1 = next(graph_iter)
+
+    num_authors, num_pubs = list(map(int, line1.strip().split()))
+
     for _ in range(num_pubs):
         linei = next(graph_iter)
         authors = list(map(int, linei.strip().split()))
