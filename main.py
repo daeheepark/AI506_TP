@@ -13,7 +13,6 @@ from torch.utils.data import DataLoader
 from gensim.models import KeyedVectors
 from tqdm import tqdm, trange
 
-from node2vec.node2vec.hypernode2vec import Hypernode2Vec
 from hypergraph import HyperGraph
 from utils import load_data, embed_nodes, plot_values
 from dataset import QueryDataset
@@ -93,15 +92,23 @@ if __name__ == "__main__":
     label_data = './project_data/answer_public.txt'
     test_data = './project_data/query_private.txt'
 
-    # TODO: check if we want to evaluate hypernode2vec or node2vec
-    #
-    #
+    # Hyperparameters
+    learning_rate = 1e-3
+    num_epochs = 200
+    p, q, p1, q1 = 1, 1, 1, 1
+    setting = "hypernode2vec_p("+str(p)+")q("+str(q)+")_p1("+str(p1)+")p2("+str(q1)+")"
+    # setting = "node2vec_p("+str(p)+")q("+str(q)+")"
+    pretrained_kv_path = "./kvs/"+setting+".kv"
+    pretrained_model_path = "./models/"+setting+".pth"
 
     # Load pretrained vectors, otherwise create a new graph
-    if os.path.exists("node2vec.kv"):
-        node_vectors = KeyedVectors.load("node2vec.kv", mmap='r')
+    if os.path.exists(pretrained_kv_path):
+        print("Loading pretrained keyed vectors...")
+        node_vectors = KeyedVectors.load(pretrained_kv_path, mmap='r')
     else:
-        node_vectors = embed_nodes(graph_data)
+        # TODO: check if we want to create hypernode2vec or node2vec graph
+        print("Creating node2vec graph...")
+        node_vectors = embed_nodes(graph_data, p=p, q=q)
 
     # Split and Shuffle Data
     query_train, query_val, label_train, label_val = load_data(query_data, label_data, node_vectors)
@@ -110,13 +117,13 @@ if __name__ == "__main__":
 
     # Load pretrained model, otherwise train parameters
     model = SimpleNN()
-    pretrained_model_path = "node2vec_fronorm.pth"
     if os.path.exists(pretrained_model_path):
+        print("Loading pretrained model...")
         model.load_state_dict(torch.load(pretrained_model_path), strict=False)
     else:
         criterion = nn.CrossEntropyLoss()
-        optimizer = optim.Adam(model.parameters(), lr=1e-3)
-        train_losses, val_losses, train_accuracies, val_accuracies = train(model, train_set, val_set, criterion, optimizer, max_epochs=200)
+        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+        train_losses, val_losses, train_accuracies, val_accuracies = train(model, train_set, val_set, criterion, optimizer, max_epochs=num_epochs)
         torch.save(model.state_dict(), pretrained_model_path)
 
         print("Final training loss: {:06.4f}".format(train_losses[-1]))
@@ -124,8 +131,8 @@ if __name__ == "__main__":
         print("Final training accuracy: {:06.4f}".format(train_accuracies[-1]))
         print("Final validation accuracy: {:06.4f}".format(val_accuracies[-1]))
 
-        plot_values(train_losses, val_losses, title="Losses")
-        plot_values(train_accuracies, val_accuracies, title="Accuracies")
+        plot_values(train_losses, val_losses, title="Losses", path="./losses/"+setting+"_loss.png")
+        plot_values(train_accuracies, val_accuracies, title="Accuracies", path="./accuracies/"+setting+"_acc.png")
 
     # TODO: Predict test data  ## save to answer_private.txt
     # predict(test_data)

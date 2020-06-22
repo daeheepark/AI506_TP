@@ -59,7 +59,7 @@ def load_data(query_file, label_file, node_vectors):
     return query_train, query_val, label_train, label_val
 
 
-def embed_nodes(graph_file):
+def embed_nodes(graph_file, p=1, q=1):
     lines = open(graph_file, 'r').readlines()
     lineiter = iter(lines)
     line1 = next(lineiter)
@@ -85,20 +85,20 @@ def embed_nodes(graph_file):
                         dimensions=64,
                         walk_length=10,
                         num_walks=100,
-                        p=1,
-                        q=1,
+                        p=p,
+                        q=q,
                         workers=2)
     model = node2vec.fit(window=10, min_count=1)
     node_vectors = model.wv
-    model.save("node2vec.model")    # save model in case of more training later
-    model.wv.save("node2vec.kv")    # keyed vectors for later use save memory by not loading entire model
-    del model                       # save memory during computation
+    model.save("./node2vec_kvs/node2vec_p("+str(p)+")q("+str(q)+").model")    # save model in case of more training later
+    model.wv.save("./node2vec_kvs/node2vec_p("+str(p)+")q("+str(q)+").kv")    # keyed vectors for later use save memory by not loading entire model
+    del model   # save memory during computation
     del G                           
 
     return node_vectors
 
 
-def plot_values(train_values, val_values, title):
+def plot_values(train_values, val_values, title, path):
     x = list(range(1, len(train_values)+1))
     plt.figure()
     plt.title(title)
@@ -108,7 +108,7 @@ def plot_values(train_values, val_values, title):
     plt.ylabel('Value')
     plt.tight_layout()
     plt.legend()
-    plt.savefig(title + '.png')
+    plt.savefig(path)
 
 
 def analyze():
