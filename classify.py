@@ -4,8 +4,6 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader
 
-from PIL import Image
-import matplotlib.pyplot as plt
 from itertools import combinations
 from tensorboardX import SummaryWriter
 
@@ -47,7 +45,7 @@ def evaluate(dataloader, network, is_training = False):
     gt_list = []
     network.eval()
 
-    for i, input in tqdm(enumerate(dataloader), total=len(dataloader), desc='Evaluating %s Accuracy' % "training" if is_training else "evaluation"):
+    for i, input in tqdm(enumerate(dataloader), total=len(dataloader), desc='Evaluating %s Accuracy' % "training" if is_training else 'Evaluating %s Accuracy' % "evaluation"):
         data, label = input
         # data, label = data.to(device), label.to(device)
         output = network(data)
@@ -69,14 +67,14 @@ def evaluate(dataloader, network, is_training = False):
 
 
 class Net(nn.Module):
-    def __init__(self, outputdim = 256):
+    def __init__(self, outputdim = 64):
         super(Net, self).__init__()
 
         self.outputdim = outputdim
 
-        self.fc1 = nn.Linear(2048, 1024)
-        self.fc2 = nn.Linear(1024, 512)
-        self.fc3 = nn.Linear(512, outputdim)
+        self.fc1 = nn.Linear(128, 96)
+        self.fc2 = nn.Linear(96, 72)
+        self.fc3 = nn.Linear(72, outputdim)
 
         self.simfunc = nn.CosineSimilarity()
 
@@ -134,7 +132,7 @@ def train_and_evaluate(query_fn, label_fn, kv_fn, writer):
                 optimizer.step()
                 loss = torch.tensor(0., dtype=torch.float)
 
-        print('\n', 'loss : ', loss.item())
+        print('\n', 'loss_sum : ', loss_sum.item())
 
         acc_tr, SIM_THRES = evaluate(trainloader, network, True)
         print('Training acc : ', acc_tr, "sim thres : ", SIM_THRES, '\n')
@@ -150,7 +148,7 @@ def train_and_evaluate(query_fn, label_fn, kv_fn, writer):
 
 QUERY = './project_data/query_public.txt'
 LABEL = './project_data/answer_public.txt'
-KV_fn = 'hypernode2vec_p(1)q(2)_p1(1)p2(2)dim(2048).kv'
+KV_fn = 'hypernode2vec_p(1)q(1)_p1(1)p2(1)dim(128).kv'
 KV = os.path.join(DATADIR, KV_fn)
 writer = SummaryWriter('runs/'+KV_fn+time.strftime("%Y%m%d_%H:%M:%S"))
 

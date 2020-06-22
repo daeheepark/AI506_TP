@@ -48,7 +48,7 @@ def genHypernode2vec(HG, p1, p2, p, q, num_dim, is_load=None):
         # model.save(os.path.join(RESULT_DIR,
         #                         f"hypernode2vec_p({p})q({q})_p1({p1})p2({p2}).model"))  # save model in case of more training later
         model.wv.save(os.path.join(RESULT_DIR,
-                                   f"hypernode2vec_p({p})q({q})_p1({p1})p2({p2}dim({num_dim})).kv"))  # keyed vectors for later use save memory by not loading entire model
+                                   f"hypernode2vec_p({p})q({q})_p1({p1})p2({p2})dim({num_dim}).kv"))  # keyed vectors for later use save memory by not loading entire model
         del model  # save memory during computation
 
     elif is_load is not None and os.path.isfile(is_load):
@@ -87,8 +87,8 @@ if __name__ == "__main__":
         HG.add_edges_from(edge_list)
         HG.update_hyperedges(authors)
 
-    pq = [(1,1), (1,0.5), (1,2)] # [DeepWalk, reflecting homophily, reflecting structural equivalence]
-    p1p2 = [(1,1), (1,0.5), (1,2)]
+    pq = [(1,2), (1,0.5), (1,1)] # [DeepWalk, reflecting homophily, reflecting structural equivalence]
+    p1p2 = [(1,2), (1,0.5), (1,1)]
     dims = [128, 256, 512]
 
     result = []
