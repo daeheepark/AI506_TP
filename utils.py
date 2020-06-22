@@ -8,7 +8,7 @@ import torch
 from sklearn.model_selection import train_test_split
 # from sklearn.manifold import TSNE
 # from sklearn.cluster import KMeans
-from node2vec import Node2Vec
+from node2vec.node2vec.node2vec import Node2Vec
 
 
 def load_data(query_file, label_file, node_vectors):

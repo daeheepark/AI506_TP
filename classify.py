@@ -18,7 +18,7 @@ import time
 from gensim.models import KeyedVectors
 from utils_classify import CoauthorshipDataset
 
-DATADIR = '../TP/result'
+DATADIR = './result'
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 VAL_RATIO = 0.2
 EPOCH = 50
