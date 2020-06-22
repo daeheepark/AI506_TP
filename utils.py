@@ -1,14 +1,10 @@
-from itertools import combinations
 from distutils.util import strtobool
-import sys
 
-import networkx as nx
 import matplotlib.pyplot as plt
 import torch
 from sklearn.model_selection import train_test_split
 # from sklearn.manifold import TSNE
 # from sklearn.cluster import KMeans
-from node2vec.node2vec.node2vec import Node2Vec
 
 
 def load_data(query_file, label_file, node_vectors):
@@ -41,9 +37,9 @@ def load_data(query_file, label_file, node_vectors):
             query_vec.append(torch.empty([1, input_dim]))   # TODO: or maybe give a zero vector
         
         query_vec = torch.stack(query_vec, dim=0)
-        # q = torch.mean(query_vec, dim=0)    # method#1: column-wise average
-        # q = torch.prod(query_vec, dim=0)    # method#2: hadamard
-        q = torch.norm(query_vec, dim=0)      # method#3: frobenius norm
+        q = torch.mean(query_vec, dim=0)        # method#1: column-wise average
+        # q = torch.prod(query_vec, dim=0)      # method#2: hadamard
+        # q = torch.norm(query_vec, dim=0)      # method#3: frobenius norm
         Q.append(q)
 
     Q = torch.stack(Q, dim=0)
@@ -57,45 +53,6 @@ def load_data(query_file, label_file, node_vectors):
     lf.close()
 
     return query_train, query_val, label_train, label_val
-
-
-def embed_nodes(graph_file, p=1, q=1):
-    lines = open(graph_file, 'r').readlines()
-    lineiter = iter(lines)
-    line1 = next(lineiter)
-    num_authors, num_pubs = list(map(int, line1.strip().split()))
-
-    G = nx.Graph()
-    nodes, edges = set(), set()
-
-    # one pass through paper_author.txt to get all authors->nodes and collaborations->edges
-    for _ in range(num_pubs):
-        linei = next(lineiter)
-        authors = list(map(int, linei.strip().split()))
-        nodes.update(authors)
-        for combo in combinations(authors, 2):  # combinations find all pairs of author collaborations
-            edges.add(tuple(sorted(combo)))     # sorting makes sure undirected edges are not double counted
-    
-    graph_file.close()
-
-    G.add_nodes_from(nodes)
-    G.add_edges_from(edges)
-
-    node2vec = Node2Vec(graph=G,
-                        dimensions=64,
-                        walk_length=10,
-                        num_walks=100,
-                        p=p,
-                        q=q,
-                        workers=2)
-    model = node2vec.fit(window=10, min_count=1)
-    node_vectors = model.wv
-    model.save("./node2vec_kvs/node2vec_p("+str(p)+")q("+str(q)+").model")    # save model in case of more training later
-    model.wv.save("./node2vec_kvs/node2vec_p("+str(p)+")q("+str(q)+").kv")    # keyed vectors for later use save memory by not loading entire model
-    del model   # save memory during computation
-    del G                           
-
-    return node_vectors
 
 
 def plot_values(train_values, val_values, title, path):
