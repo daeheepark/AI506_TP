@@ -67,14 +67,14 @@ def evaluate(dataloader, network, is_training = False):
 
 
 class Net(nn.Module):
-    def __init__(self, outputdim = 64):
+    def __init__(self, inputdim, outputdim = 72):
         super(Net, self).__init__()
 
         self.outputdim = outputdim
 
-        self.fc1 = nn.Linear(128, 96)
-        self.fc2 = nn.Linear(96, 72)
-        self.fc3 = nn.Linear(72, outputdim)
+        self.fc1 = nn.Linear(inputdim, 128)
+        self.fc2 = nn.Linear(128, 96)
+        self.fc3 = nn.Linear(96, outputdim)
 
         self.simfunc = nn.CosineSimilarity()
 
@@ -108,7 +108,9 @@ def train_and_evaluate(query_fn, label_fn, kv_fn, writer):
     trainloader = DataLoader(trainset, shuffle=True)
     valloader = DataLoader(valset, shuffle=False)
 
-    network = Net()#.to(device)
+    inputdim = trainset[0][0].size()[1]
+
+    network = Net(inputdim=inputdim)#.to(device)
     loss_fn = nn.L1Loss()
     optimizer = optim.Adam(network.parameters())
 
@@ -148,7 +150,7 @@ def train_and_evaluate(query_fn, label_fn, kv_fn, writer):
 
 QUERY = './project_data/query_public.txt'
 LABEL = './project_data/answer_public.txt'
-KV_fn = 'hypernode2vec_p(1)q(1)_p1(1)p2(1)dim(128).kv'
+KV_fn = 'hypernode2vec_p(1)q(2)_p1(1)p2(2)dim(256).kv'
 KV = os.path.join(DATADIR, KV_fn)
 writer = SummaryWriter('runs/'+KV_fn+time.strftime("%Y%m%d_%H:%M:%S"))
 
