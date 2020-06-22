@@ -100,7 +100,7 @@ class Net(nn.Module):
 
         return sim
 
-def main(query_fn, label_fn, kv_fn, writer):
+def train_and_evaluate(query_fn, label_fn, kv_fn, writer):
 
     Dataset = CoauthorshipDataset(query_fn, label_fn, kv_fn)
     train_val_length = [Dataset.num_queries - int(VAL_RATIO*Dataset.num_queries), int(VAL_RATIO*Dataset.num_queries)]
@@ -152,7 +152,7 @@ QUERY = './project_data/query_public.txt'
 LABEL = './project_data/answer_public.txt'
 KV_fn = 'hypernode2vec_p(1)q(2)_p1(1)p2(2)dim(2048).kv'
 KV = os.path.join(DATADIR, KV_fn)
-
 writer = SummaryWriter('runs/'+KV_fn+time.strftime("%Y%m%d_%H:%M:%S"))
 
-main(QUERY, LABEL, KV, writer)
+if __name__ == "__main__":
+    train_and_evaluate(QUERY, LABEL, KV, writer)
