@@ -6,7 +6,8 @@ from node2vec import Node2Vec
 
 
 def embed_nodes(graph_file, kv_path, p=1, q=1):
-    lines = open(graph_file, 'r').readlines()
+    f = open(graph_file, 'r')
+    lines = f.readlines()
     lineiter = iter(lines)
     line1 = next(lineiter)
     num_authors, num_pubs = list(map(int, line1.strip().split()))
@@ -22,7 +23,7 @@ def embed_nodes(graph_file, kv_path, p=1, q=1):
         for combo in combinations(authors, 2):  # combinations find all pairs of author collaborations
             edges.add(tuple(sorted(combo)))     # sorting makes sure undirected edges are not double counted
     
-    graph_file.close()
+    f.close()
 
     G.add_nodes_from(nodes)
     G.add_edges_from(edges)
@@ -44,7 +45,7 @@ def embed_nodes(graph_file, kv_path, p=1, q=1):
 
 if __name__ == "__main__":
     graph_data = './project_data/paper_author.txt'
-    p, q = 1, 1     # set hyperparameters p and q
+    p, q = 1, 0.5     # set hyperparameters p and q
     kv_path = "./kvs/node2vec_p("+str(p)+")q("+str(q)+").kv"
     if os.path.exists(kv_path):
         print("Keyed vectors already exist at", kv_path)

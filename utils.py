@@ -34,10 +34,10 @@ def load_data(query_file, label_file, node_vectors):
             query_vec.append(node_vec)
         
         if len(query_vec) == 0:
-            query_vec.append(torch.empty([1, input_dim]))   # TODO: or maybe give a zero vector
+            query_vec.append(torch.zeros([1, input_dim]))
         
         query_vec = torch.stack(query_vec, dim=0)
-        q = torch.mean(query_vec, dim=0)        # method#1: column-wise average
+        q = torch.mean(query_vec, dim=0)        # method#1: column-wise average (best performance)
         # q = torch.prod(query_vec, dim=0)      # method#2: hadamard
         # q = torch.norm(query_vec, dim=0)      # method#3: frobenius norm
         Q.append(q)

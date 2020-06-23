@@ -32,7 +32,7 @@ def train(model, train_set, val_set, criterion, optimizer, batch_size, max_epoch
             scores = model(queries)
             loss = criterion(scores, labels)
             loss.backward()
-            torch.nn.utils.clip_grad_value_(model.parameters(), 1.0)
+            # torch.nn.utils.clip_grad_value_(model.parameters(), 1.0)
             optimizer.step()
             
             _, pred = torch.max(scores.data, dim=1)
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     test_data = './project_data/query_private.txt'
 
     # Hyperparameters
-    learning_rate = 1e-6
+    learning_rate = 1e-4
     batch_size = 32
     num_epochs = 100
     p, p1 = 1, 1
