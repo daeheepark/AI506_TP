@@ -50,6 +50,11 @@ def train(model, train_set, val_set, criterion, optimizer, batch_size, max_epoch
         train_losses.append(sum(train_loss) / len(train_loss))
         train_accuracies.append(sum(train_acc) / len(train_acc))
 
+        print()
+        print("Avg Training Loss:", sum(train_loss) / len(train_loss))
+        print("Avg Training Acc:", sum(train_acc) / len(train_acc))
+        print()
+
         val_loss, val_acc = [], []
         model.eval()
         with torch.no_grad():
@@ -73,11 +78,22 @@ def train(model, train_set, val_set, criterion, optimizer, batch_size, max_epoch
         val_losses.append(sum(val_loss) / len(val_loss))
         val_accuracies.append(sum(val_acc) / len(val_acc))
 
+        print()
+        print("Avg Validation Loss:", sum(val_loss) / len(val_loss))
+        print("Avg Validation Acc:", sum(val_acc) / len(val_acc))
+        print()
+
     return train_losses, val_losses, train_accuracies, val_accuracies
 
 
 def predict(model, test_set):
     pass
+
+
+def init_weights(m):
+    if type(m) == nn.Linear:
+        torch.nn.init.kaiming_uniform_(m.weight)
+        m.bias.data.fill_(0.001)
 
 
 if __name__ == "__main__":
@@ -86,50 +102,51 @@ if __name__ == "__main__":
     test_data = './project_data/query_private.txt'
 
     # Hyperparameters
-    learning_rate = 1e-4
+    input_dim = 512
+    hidden_dim = 256
+    hidden_dim2 = 64
+    learning_rate = 5e-5
     batch_size = 32
-    num_epochs = 100
-    p, p1 = 1, 1
-    for q in [0.5, 1, 2]:
-        for q1 in [0.5, 1, 2]:
-            if q == 2 and q1 == 0.5:    # skip this config
-                continue
-            print(f"Running p: {p}, q: {q}, p1: {p1}, q1: {q1}...")
+    num_epochs = 200
+    p, q, p1, q1 = 1, 2, 1, 0.5
 
-            setting = "hypernode2vec_p("+str(p)+")q("+str(q)+")_p1("+str(p1)+")p2("+str(q1)+")"
-            # setting = "node2vec_p("+str(p)+")q("+str(q)+")"
-            pretrained_kv_path = "./kvs/"+setting+".kv"
-            pretrained_model_path = "./models/"+setting+".pth"
+    print(f"Running p: {p}, q: {q}, p1: {p1}, q1: {q1}...")
+    setting = f"hypernode2vec_p({p})q({q})_p1({p1})p2({q1})dim({input_dim})"
+    # print(f"Running p: {p}, q: {q}...")
+    # setting = "node2vec_p("+str(p)+")q("+str(q)+")_2"
+    pretrained_kv_path = "./kvs/"+setting+".kv"
+    pretrained_model_path = "./models/"+setting+f"_hid({hidden_dim})_hid2({hidden_dim2})_dropout5_bn.pth"
 
-            # Load pretrained vectors
-            print("Loading pretrained keyed vectors...")
-            node_vectors = KeyedVectors.load(pretrained_kv_path, mmap='r')
+    # Load pretrained vectors
+    print("Loading pretrained keyed vectors...")
+    node_vectors = KeyedVectors.load(pretrained_kv_path, mmap='r')
 
-            # Preprocess, Split, Shuffle Data
-            query_train, query_val, label_train, label_val = load_data(query_data, label_data, node_vectors)
-            train_set = QueryDataset(query_train, label_train)
-            val_set = QueryDataset(query_val, label_val)
+    # Preprocess, Split, Shuffle Data
+    query_train, query_val, label_train, label_val = load_data(query_data, label_data, node_vectors)
+    train_set = QueryDataset(query_train, label_train)
+    val_set = QueryDataset(query_val, label_val)
 
-            # Load pretrained model, otherwise train parameters
-            model = SimpleNN()
-            if os.path.exists(pretrained_model_path):
-                print("Loading pretrained model...")
-                model.load_state_dict(torch.load(pretrained_model_path), strict=False)
-            else:
-                criterion = nn.CrossEntropyLoss()
-                optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-                model.to(device)
-                print("Running on:", device)
-                train_losses, val_losses, train_accuracies, val_accuracies = train(model, train_set, val_set, criterion, optimizer, batch_size, num_epochs)
-                torch.save(model.state_dict(), pretrained_model_path)
+    # Load pretrained model, otherwise train parameters
+    model = SimpleNN(input_dim, hidden_dim, hidden_dim2)
+    # model.apply(init_weights)
+    if os.path.exists(pretrained_model_path):
+        print("Loading pretrained model...")
+        model.load_state_dict(torch.load(pretrained_model_path), strict=False)
+    else:
+        criterion = nn.CrossEntropyLoss()
+        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+        model.to(device)
+        print("Running on:", device)
+        train_losses, val_losses, train_accuracies, val_accuracies = train(model, train_set, val_set, criterion, optimizer, batch_size, num_epochs)
+        torch.save(model.state_dict(), pretrained_model_path)
 
-                print("Final training loss: {:06.4f}".format(train_losses[-1]))
-                print("Final validation loss: {:06.4f}".format(val_losses[-1]))
-                print("Final training accuracy: {:06.4f}".format(train_accuracies[-1]))
-                print("Final validation accuracy: {:06.4f}".format(val_accuracies[-1]))
+        print("Final training loss: {:06.4f}".format(train_losses[-1]))
+        print("Final validation loss: {:06.4f}".format(val_losses[-1]))
+        print("Final training accuracy: {:06.4f}".format(train_accuracies[-1]))
+        print("Final validation accuracy: {:06.4f}".format(val_accuracies[-1]))
 
-                plot_values(train_losses, val_losses, title="Losses", path="./losses/"+setting+"_loss.png")
-                plot_values(train_accuracies, val_accuracies, title="Accuracies", path="./accuracies/"+setting+"_acc.png")
+        plot_values(train_losses, val_losses, title="Losses", path="./losses/"+setting+f"_loss_hid({hidden_dim})_hid2({hidden_dim2})_dropout5_bn.png")
+        plot_values(train_accuracies, val_accuracies, title="Accuracies", path="./accuracies/"+setting+f"_acc_hid({hidden_dim})_hid2({hidden_dim2})_dropout5_bn.png")
 
     # TODO: Predict test data  ## save to answer_private.txt
     # predict(model, test_data)

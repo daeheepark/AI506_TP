@@ -45,8 +45,8 @@ def embed_nodes(graph_file, kv_path, p=1, q=1):
 
 if __name__ == "__main__":
     graph_data = './project_data/paper_author.txt'
-    p, q = 1, 0.5     # set hyperparameters p and q
-    kv_path = "./kvs/node2vec_p("+str(p)+")q("+str(q)+").kv"
+    p, q = 1, 1     # set hyperparameters p and q
+    kv_path = f"./kvs/node2vec_p({p})q({q}).kv"
     if os.path.exists(kv_path):
         print("Keyed vectors already exist at", kv_path)
     else:
